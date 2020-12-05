@@ -1,6 +1,8 @@
 const Peer = window.Peer;
 
 (async function main() {
+  let number=1;
+  let personNumber = document.getElementById('PersonNumber');
   const localVideo = document.getElementById('js-local-stream');
   const joinTrigger = document.getElementById('js-join-trigger');
   const leaveTrigger = document.getElementById('js-leave-trigger');
@@ -53,11 +55,15 @@ const Peer = window.Peer;
       stream: localStream,
     });
 
+    //初参加の時
     room.once('open', () => {
       messages.textContent += '=== You joined ===\n';
     });
     room.on('peerJoin', peerId => {
       messages.textContent += `=== ${peerId} joined ===\n`;
+      number++;
+      document.getElementById('PersonNumber').innerText=number;
+
     });
 
     // Render remote stream for new peer join in the room
@@ -75,8 +81,9 @@ const Peer = window.Peer;
       // Show a message sent to the room and who sent
       messages.textContent += `${src}: ${data}\n`;
     });
-
-    // for closing room members
+　　
+    　
+    //メンバーが通話から抜けるとき
     room.on('peerLeave', peerId => {
       const remoteVideo = remoteVideos.querySelector(
         `[data-peer-id="${peerId}"]`
@@ -86,6 +93,8 @@ const Peer = window.Peer;
       remoteVideo.remove();
 
       messages.textContent += `=== ${peerId} left ===\n`;
+      number--;
+      document.getElementById('PersonNumber').innerText=number;
     });
 
     // for closing myself
@@ -101,9 +110,9 @@ const Peer = window.Peer;
 
     sendTrigger.addEventListener('click', onClickSend);
     leaveTrigger.addEventListener('click', () => room.close(), { once: true });
-
+    
+    //送信が押されたときの処理
     function onClickSend() {
-      // Send message to all of the peers in the room via websocket
       room.send(localText.value);
 
       messages.textContent += `${peer.id}: ${localText.value}\n`;
