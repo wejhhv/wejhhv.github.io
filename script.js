@@ -7,7 +7,7 @@ const Peer = window.Peer;
   const leaveTrigger = document.getElementById('js-leave-trigger');
   const remoteVideos = document.getElementById('js-remote-streams');
   const roomId = document.getElementById('js-room-id');
-  const roomMode = document.getElementById('js-room-mode');
+  //const roomMode = document.getElementById('js-room-mode');
   const localText = document.getElementById('js-local-text');
   const sendTrigger = document.getElementById('js-send-trigger');
   const messages = document.getElementById('js-messages');
@@ -54,13 +54,13 @@ const Peer = window.Peer;
 
     //初参加の時
     room.once('open', () => {
-      messages.textContent += '=== 参加しました ===\n';
+      messages.textContent += '= 参加しました =\n';
       　number++;
       document.getElementById('PersonNumber').innerText=number;
     });
     //他人が参加した時の処理
     room.on('peerJoin', peerId => {
-      messages.textContent += `=== ${peerId} が参加しました ===\n`;
+      messages.textContent += `= ${peerId} が参加しました =\n`;
       number++;
       document.getElementById('PersonNumber').innerText=number;
 
@@ -92,7 +92,7 @@ const Peer = window.Peer;
       remoteVideo.srcObject = null;
       remoteVideo.remove();
 
-      messages.textContent += `=== ${peerId} が退出しました ===\n`;
+      messages.textContent += `= ${peerId} が退出しました =\n`;
       number--;
       document.getElementById('PersonNumber').innerText=number;
     });
@@ -100,7 +100,7 @@ const Peer = window.Peer;
     // for closing myself
     room.once('close', () => {
       sendTrigger.removeEventListener('click', onClickSend);
-      messages.textContent += '== 退出しました ===\n';
+      messages.textContent += '= 退出しました =\n';
       Array.from(remoteVideos.children).forEach(remoteVideo => {
         remoteVideo.srcObject.getTracks().forEach(track => track.stop());
         remoteVideo.srcObject = null;
