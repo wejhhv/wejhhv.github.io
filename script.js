@@ -43,7 +43,7 @@ const Peer = window.Peer;
 
   //最初の画面に来た際の処理
   joinTrigger.addEventListener('click', () => {
-    
+    //document.getElementById('number').innerText=peerId;
     if (!peer.open) {
       return;
     }
@@ -58,14 +58,12 @@ const Peer = window.Peer;
     room.once('open', () => {
       messages.textContent += '= 参加しました =\n';
       　number++;
-      document.getElementById('number').innerText=aaa;
+      document.getElementById('number').innerText=peerId;
 
     });
     //他人が参加した時の処理
     room.on('peerJoin', peerId => {
       messages.textContent += `= ${peerId} が参加しました =\n`;
-      number++;
-      document.getElementById('number').innerText=peerId;
 
     });
 
