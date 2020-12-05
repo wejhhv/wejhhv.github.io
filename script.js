@@ -7,7 +7,7 @@ const Peer = window.Peer;
   const leaveTrigger = document.getElementById('js-leave-trigger');
   const remoteVideos = document.getElementById('js-remote-streams');
   const roomId = document.getElementById('js-room-id');
-  //const roomMode = document.getElementById('js-room-mode');
+  const roomMode = document.getElementById('js-room-mode');
   const localText = document.getElementById('js-local-text');
   const sendTrigger = document.getElementById('js-send-trigger');
   const messages = document.getElementById('js-messages');
@@ -43,6 +43,7 @@ const Peer = window.Peer;
 
   //最初の画面に来た際の処理
   joinTrigger.addEventListener('click', () => {
+    
     if (!peer.open) {
       return;
     }
@@ -50,19 +51,21 @@ const Peer = window.Peer;
     const room = peer.joinRoom(roomId.value, {
       mode: getRoomModeByHash(),
       stream: localStream,
+      
     });
 
     //初参加の時
     room.once('open', () => {
       messages.textContent += '= 参加しました =\n';
       　number++;
-      document.getElementById('PersonNumber').innerText=number;
+      document.getElementById('number').innerText=aaa;
+
     });
     //他人が参加した時の処理
     room.on('peerJoin', peerId => {
       messages.textContent += `= ${peerId} が参加しました =\n`;
       number++;
-      document.getElementById('PersonNumber').innerText=number;
+      document.getElementById('number').innerText=peerId;
 
     });
 
