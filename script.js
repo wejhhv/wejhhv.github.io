@@ -40,10 +40,10 @@ const Peer = window.Peer;
   await localVideo.play().catch(console.error);
 
   // eslint-disable-next-line require-atomic-updates
-  const peer  = new Peer({
-    key: "0d6fca3f-8fac-4b01-854c-6eae38d8f8af",
+  const peer = (window.peer = new Peer({
+    key: window.__SKYWAY_KEY__,
     debug: 3,
-  });
+  }));
 
   // Register join handler
   joinTrigger.addEventListener('click', () => {
