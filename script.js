@@ -16,7 +16,7 @@ const Peer = window.Peer;
 
   const getRoomModeByHash = () => (location.hash === '#sfu' ? 'sfu' : 'mesh');
 
-　roomMode.textContent = getRoomModeByHash();
+  roomMode.textContent = getRoomModeByHash();
   window.addEventListener(
     'hashchange',
     () => (roomMode.textContent = getRoomModeByHash())
