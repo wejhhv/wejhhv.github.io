@@ -43,7 +43,8 @@ const Peer = window.Peer;
 
   //最初の画面に来た際の処理
   joinTrigger.addEventListener('click', () => {
-    //document.getElementById('number').innerText=peerId;
+    document.getElementById('number').innerText=peer.id;
+    console.log(peer.id)
     if (!peer.open) {
       return;
     }
@@ -57,8 +58,7 @@ const Peer = window.Peer;
     //初参加の時
     room.once('open', () => {
       messages.textContent += '= 参加しました =\n';
-      　number++;
-      document.getElementById('number').innerText=peerId;
+    
 
     });
     //他人が参加した時の処理
