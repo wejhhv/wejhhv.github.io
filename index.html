@@ -20,7 +20,12 @@
         <div>
           <video id="js-local-stream"></video>
           <span id="js-room-mode"></span>:
-          <input type="text" placeholder="Room Name" id="js-room-id">
+          <form>
+            <div class="form-group">
+              <input type="text" class="form-control"placeholder="Room Name" id="js-room-id">
+            </div>
+          </form>
+
           <button id="js-join-trigger" class="btn btn-danger">入る</button>
           <button id="js-leave-trigger">Leave</button>
         </div>
@@ -29,7 +34,11 @@
 
         <div>
           <pre class="messages" id="js-messages"></pre>
-          <input type="text" id="js-local-text">
+          <form>
+            <div class="form-group">
+              <input type="text" class="form-control" id="js-local-text">
+            </div>
+          </form>
           <button id="js-send-trigger" class="btn btn-primary">送信</button>
         </div>
       </div>
