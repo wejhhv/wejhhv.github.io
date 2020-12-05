@@ -1,84 +1,120 @@
-'use strict';
+const Peer = window.Peer;
 
-//カメラ映像、マイク音声の取得
-let localStream = null;
-let peer = null;
-let existingCall = null;
+(async function main() {
+  const localVideo = document.getElementById('js-local-stream');
+  const joinTrigger = document.getElementById('js-join-trigger');
+  const leaveTrigger = document.getElementById('js-leave-trigger');
+  const remoteVideos = document.getElementById('js-remote-streams');
+  const roomId = document.getElementById('js-room-id');
+  const roomMode = document.getElementById('js-room-mode');
+  const localText = document.getElementById('js-local-text');
+  const sendTrigger = document.getElementById('js-send-trigger');
+  const messages = document.getElementById('js-messages');
+  const meta = document.getElementById('js-meta');
+  const sdkSrc = document.querySelector('script[src*=skyway]');
 
-navigator.mediaDevices.getUserMedia({video: true, audio: true})
-    .then(function (stream) {
-        // Success
-        $('#my-video').get(0).srcObject = stream;
-        localStream = stream;
-    }).catch(function (error) {
-        // Error
-        console.error('mediaDevice.getUserMedia() error:', error);
-        return;
-    });
+  meta.innerText = `
+    UA: ${navigator.userAgent}
+    SDK: ${sdkSrc ? sdkSrc.src : 'unknown'}
+  `.trim();
 
-peer = new Peer({
-    key: '0d6fca3f-8fac-4b01-854c-6eae38d8f8af',
-    debug: 3
-})
+  const getRoomModeByHash = () => (location.hash === '#sfu' ? 'sfu' : 'mesh');
 
-peer.on('open', function(){
-    $('#my-id').text(peer.id);
+  roomMode.textContent = getRoomModeByHash();
+  window.addEventListener(
+    'hashchange',
+    () => (roomMode.textContent = getRoomModeByHash())
+  );
+
+  const localStream = await navigator.mediaDevices
+    .getUserMedia({
+      audio: true,
+      video: true,
     })
-    
-peer.on('error', function(err){
-    alert(err.message);
-    })
+    .catch(console.error);
 
-peer.on('disconnected', function(){
-    });
+  // Render local stream
+  localVideo.muted = true;
+  localVideo.srcObject = localStream;
+  localVideo.playsInline = true;
+  await localVideo.play().catch(console.error);
 
-peer.on('call', function(call){
-        call.answer(localStream);
-        setupCallEventHandlers(call);
-    });
+  // eslint-disable-next-line require-atomic-updates
+  const peer  = new Peer({
+    key: "0d6fca3f-8fac-4b01-854c-6eae38d8f8af",
+    debug: 3,
+  });
 
-$('#make-call').submit(function(e){
-    e.preventDefault();
-    const call = peer.call($('#callto-id').val(), localStream);
-    setupCallEventHandlers(call);
-    });
-
-$('#end-call').click(function(){
-    existingCall.close();
-    });
-
-function setupCallEventHandlers(call){
-    if (existingCall) {
-        existingCall.close();
-        };
-    
-    existingCall = call;
-    
-    call.on('stream', function(stream){
-        addVideo(call,stream);
-        setupEndCallUI();
-        $('#their-id').text(call.remoteId);
-        });
-    // 省略
+  // Register join handler
+  joinTrigger.addEventListener('click', () => {
+    // Note that you need to ensure the peer has connected to signaling server
+    // before using methods of peer instance.
+    if (!peer.open) {
+      return;
     }
 
-function addVideo(call,stream){
-    $('#their-video').get(0).srcObject = stream;
+    const room = peer.joinRoom(roomId.value, {
+      mode: getRoomModeByHash(),
+      stream: localStream,
+    });
+
+    room.once('open', () => {
+      messages.textContent += '=== You joined ===\n';
+    });
+    room.on('peerJoin', peerId => {
+      messages.textContent += `=== ${peerId} joined ===\n`;
+    });
+
+    // Render remote stream for new peer join in the room
+    room.on('stream', async stream => {
+      const newVideo = document.createElement('video');
+      newVideo.srcObject = stream;
+      newVideo.playsInline = true;
+      // mark peerId to find it later at peerLeave event
+      newVideo.setAttribute('data-peer-id', stream.peerId);
+      remoteVideos.append(newVideo);
+      await newVideo.play().catch(console.error);
+    });
+
+    room.on('data', ({ data, src }) => {
+      // Show a message sent to the room and who sent
+      messages.textContent += `${src}: ${data}\n`;
+    });
+
+    // for closing room members
+    room.on('peerLeave', peerId => {
+      const remoteVideo = remoteVideos.querySelector(
+        `[data-peer-id="${peerId}"]`
+      );
+      remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+      remoteVideo.srcObject = null;
+      remoteVideo.remove();
+
+      messages.textContent += `=== ${peerId} left ===\n`;
+    });
+
+    // for closing myself
+    room.once('close', () => {
+      sendTrigger.removeEventListener('click', onClickSend);
+      messages.textContent += '== You left ===\n';
+      Array.from(remoteVideos.children).forEach(remoteVideo => {
+        remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+        remoteVideo.srcObject = null;
+        remoteVideo.remove();
+      });
+    });
+
+    sendTrigger.addEventListener('click', onClickSend);
+    leaveTrigger.addEventListener('click', () => room.close(), { once: true });
+
+    function onClickSend() {
+      // Send message to all of the peers in the room via websocket
+      room.send(localText.value);
+
+      messages.textContent += `${peer.id}: ${localText.value}\n`;
+      localText.value = '';
     }
+  });
 
-function removeVideo(peerId){
-    $('#' + peerId).remove();
-   }
-
-function setupMakeCallUI(){
-    $('#make-call').show();
-    $('#end-call').hide();
-}
-
-function setupEndCallUI() {
-    $('#make-call').hide();
-    $('#end-call').show();
-}
-
-
-console.log(text(peer.id))
+  peer.on('error', console.error);
+})();
