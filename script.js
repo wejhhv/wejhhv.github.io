@@ -1,8 +1,7 @@
 const Peer = window.Peer;
 
 (async function main() {
-  let number=1;
-  let personNumber = document.getElementById('PersonNumber');
+  let number=0;  //参加者人数
   const localVideo = document.getElementById('js-local-stream');
   const joinTrigger = document.getElementById('js-join-trigger');
   const leaveTrigger = document.getElementById('js-leave-trigger');
@@ -36,16 +35,14 @@ const Peer = window.Peer;
   localVideo.playsInline = true;
   await localVideo.play().catch(console.error);
 
-  // eslint-disable-next-line require-atomic-updates
+  //Peerクラスの生成、自動でIDの付与
   const peer = (window.peer = new Peer({
     key: window.__SKYWAY_KEY__,
     debug: 3,
   }));
 
-  // Register join handler
+  //最初の画面に来た際の処理
   joinTrigger.addEventListener('click', () => {
-    // Note that you need to ensure the peer has connected to signaling server
-    // before using methods of peer instance.
     if (!peer.open) {
       return;
     }
@@ -57,16 +54,19 @@ const Peer = window.Peer;
 
     //初参加の時
     room.once('open', () => {
-      messages.textContent += '=== You joined ===\n';
+      messages.textContent += '=== 参加しました ===\n';
+      　number++;
+      document.getElementById('PersonNumber').innerText=number;
     });
+    //他人が参加した時の処理
     room.on('peerJoin', peerId => {
-      messages.textContent += `=== ${peerId} joined ===\n`;
+      messages.textContent += `=== ${peerId} が参加しました ===\n`;
       number++;
       document.getElementById('PersonNumber').innerText=number;
 
     });
 
-    // Render remote stream for new peer join in the room
+    //他人のビデオの表示
     room.on('stream', async stream => {
       const newVideo = document.createElement('video');
       newVideo.srcObject = stream;
@@ -77,8 +77,8 @@ const Peer = window.Peer;
       await newVideo.play().catch(console.error);
     });
 
+    //メッセージの処理
     room.on('data', ({ data, src }) => {
-      // Show a message sent to the room and who sent
       messages.textContent += `${src}: ${data}\n`;
     });
 　　
@@ -92,7 +92,7 @@ const Peer = window.Peer;
       remoteVideo.srcObject = null;
       remoteVideo.remove();
 
-      messages.textContent += `=== ${peerId} left ===\n`;
+      messages.textContent += `=== ${peerId} が退出しました ===\n`;
       number--;
       document.getElementById('PersonNumber').innerText=number;
     });
@@ -100,7 +100,7 @@ const Peer = window.Peer;
     // for closing myself
     room.once('close', () => {
       sendTrigger.removeEventListener('click', onClickSend);
-      messages.textContent += '== You left ===\n';
+      messages.textContent += '== 退出しました ===\n';
       Array.from(remoteVideos.children).forEach(remoteVideo => {
         remoteVideo.srcObject.getTracks().forEach(track => track.stop());
         remoteVideo.srcObject = null;
