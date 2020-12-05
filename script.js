@@ -79,3 +79,6 @@ function setupEndCallUI() {
     $('#make-call').hide();
     $('#end-call').show();
 }
+
+
+console.log(text(peer.id))
