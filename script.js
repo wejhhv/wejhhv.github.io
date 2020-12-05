@@ -48,7 +48,7 @@ const Peer = window.Peer;
     }
 
     const room = peer.joinRoom(roomId.value, {
-      mode: getByHash(),
+      mode: getRoomModeByHash(),
       stream: localStream,
     });
 
